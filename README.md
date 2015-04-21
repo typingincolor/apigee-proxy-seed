@@ -12,5 +12,8 @@ It uses the [Apigee Grunt Plugin](https://github.com/apigeecs/apigee-deploy-grun
 To deploy the sample proxy:
 
 ```
-grunt --env=test --username=_username_ --password=_password_ --org=_apigee_organisation_ --curl=true 
+grunt --env=test --username=_username_ /
+      --password=_password_ /
+      --org=_apigee_organisation_ /
+      --curl=true 
 ```
