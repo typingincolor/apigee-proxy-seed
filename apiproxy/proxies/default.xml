@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProxyEndpoint name="default">
+    <Description/>
+    <Flows>
+        <Flow name="status">
+            <Description/>
+            <Request/>
+            <Response>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath &quot;/status&quot;) and (request.verb = &quot;GET&quot;)</Condition>
+        </Flow>
+        <Flow name="sample">
+            <Description/>
+            <Request/>
+            <Response>
+            </Response>
+            <Condition>(proxy.pathsuffix MatchesPath &quot;/**&quot;) and (request.verb = &quot;GET&quot;)</Condition>
+        </Flow>
+    </Flows>
+    <PreFlow name="PreFlow">
+        <Request/>
+        <Response/>
+    </PreFlow>
+    <HTTPProxyConnection>
+        <BasePath>/v1/sample</BasePath>
+        <VirtualHost>secure</VirtualHost>
+    </HTTPProxyConnection>
+    <RouteRule name="status">
+        <Condition>(proxy.pathsuffix MatchesPath &quot;/status&quot;) and (request.verb = &quot;GET&quot;)</Condition>
+        <TargetEndpoint>status</TargetEndpoint>
+    </RouteRule>
+    <RouteRule name="default">
+        <Condition>(proxy.pathsuffix MatchesPath &quot;/**&quot;) and (request.verb = &quot;GET&quot;)</Condition>
+        <TargetEndpoint>default</TargetEndpoint>
+    </RouteRule>
+    <PostFlow name="PostFlow">
+        <Request/>
+        <Response/>
+    </PostFlow>
+</ProxyEndpoint>
