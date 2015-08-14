@@ -54,6 +54,18 @@ var configureProxy = function(proxyFile, basePath, virtualHost) {
   return conf;
 };
 
+var configureTargetEndpoint = function(targetEndpoint) {
+  var conf = {
+    "options": {},
+    "files": {}
+  };
+  conf.options.xpath = "//TargetEndpoint/HTTPTargetConnection/URL";
+  conf.options.value = targetEndpoint;
+  conf.files["target/apiproxy/targets/default.xml"] = "apiproxy/targets/default.xml";
+
+  return conf;
+};
+
 var gitRevision = function() {
   var conf = {
     "options": {},
@@ -76,11 +88,11 @@ var environment = function(basePath, virtualHost, targetEndpoint, configureSpike
 
 exports.xmlconfig = function(env, grunt) {
   var config = {
-    "dev": environment("/v1/ratesquery", "secure"),
-    "tlrgsandbox": environment("/v1/ratesquery", "https_vhost"),
-    "tlrgtest": environment("/v1/ratesquery", "https_vhost"),
-    "tlrgprod": environment("/v1/ratesquery", "https_vhost"),
-    "integration": environment("/v1/ratesquery", "secure")
+    "dev": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapps.com/hotels"),
+    "tlrgsandbox": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
+    "tlrgtest": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
+    "tlrgprod": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
+    "integration": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapps.com/hotels")
   };
 
   if (!config[env]) {
