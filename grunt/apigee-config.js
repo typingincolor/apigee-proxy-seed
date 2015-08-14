@@ -1,87 +1,91 @@
+var profile = function(environment, grunt) {
+  var profile = {};
+  profile.apiproxy = 'ratesquery';
+  profile.org = grunt.option('org') || process.env.ae_org; // replace with organization
+  profile.env = environment; // replace with environment
+  profile.url_mgmt = 'https://api.enterprise.apigee.com'; // for cloud environments, leave as is
+  profile.username = grunt.option('username') || process.env.ae_username; // pass credentials as arguments as grunt task --username=$ae_username --password=$ae_password
+  profile.password = grunt.option('password') || process.env.ae_password; // use ae_username and ae_password are defined as environment variables and no arguments are passed
+  profile.revision = grunt.option('revision'); // provide revision to be undeployed by passing argument as --revision=X
+  profile.override = grunt.option('override') || true;
+  profile.delay = grunt.option('delay') || 10;
+  profile.apikey = grunt.option('apikey') || process.env.ae_apikey;
+
+  return profile;
+};
+
 exports.profiles = function(grunt) {
   return {
     env: grunt.option('env'), // replace with environment
-    'test': {
-      apiproxy: 'sample',
-      org: grunt.option('org'), // replace with organization
-      env: 'test', // replace with environment
-      url_mgmt: 'https://api.enterprise.apigee.com', // for cloud environments, leave as is
-      username: grunt.option('username'), //|| process.env.ae_username, // pass credentials as arguments as grunt task --username=$ae_username --password=$ae_password
-      password: grunt.option('password'), //|| process.env.ae_password, // use ae_username and ae_password are defined as environment variables and no arguments are passed
-      revision: grunt.option('revision'), // provide revision to be undeployed by passing argument as --revision=X
-      override: grunt.option('override') || true,
-      delay: grunt.option('delay') || 10
-    },
-    'prod': {
-      apiproxy: 'sample',
-      org: grunt.option('org'), // replace with organization
-      env: 'prod', // replace with environment
-      url_mgmt: 'https://api.enterprise.apigee.com', // for cloud environments, leave as is
-      username: grunt.option('username'), //|| process.env.ae_username, // pass credentials as arguments as grunt task --username=$ae_username --password=$ae_password
-      password: grunt.option('password'), //|| process.env.ae_password, // use ae_username and ae_password are defined as environment variables and no arguments are passed
-      revision: grunt.option('revision'), // provide revision to be undeployed by passing argument as --revision=X
-      override: grunt.option('override') || true,
-      delay: grunt.option('delay') || 10
-    }
-  }
-}
+    'dev': profile("test", grunt),
+    'tlrgtest': profile("test", grunt),
+    'tlrgsandbox': profile("sandbox", grunt),
+    'tlrgprod': profile("prod", grunt),
+    'integration': profile("prod", grunt)
+  };
+};
+
+var setProxyEndpoints = function(basePath, virtualHost) {
+  var result = {
+    "replacements": []
+  };
+
+  result.replacements.push({
+    "xpath": "//ProxyEndpoint/HTTPProxyConnection/BasePath",
+    value: basePath
+  });
+  result.replacements.push({
+    "xpath": "//ProxyEndpoint/HTTPProxyConnection/VirtualHost",
+    value: virtualHost
+  });
+
+  return result;
+};
+
+var configureProxy = function(proxyFile, basePath, virtualHost) {
+  var conf = {
+    "options": {},
+    "files": {}
+  };
+
+  conf.options = setProxyEndpoints(basePath, virtualHost);
+  conf.files["target/apiproxy/proxies/" + proxyFile + ".xml"] = "apiproxy/proxies/" + proxyFile + ".xml";
+
+  return conf;
+};
+
+var gitRevision = function() {
+  var conf = {
+    "options": {},
+    "files": {}
+  };
+  conf.options.xpath = "//APIProxy/Description";
+  conf.options.value = "<%= grunt.option('gitRevision') %>";
+
+  conf.files["target/apiproxy/<%= apigee_profiles[grunt.option('env')].apiproxy %>.xml"] = "apiproxy/*.xml";
+  return conf;
+};
+
+var environment = function(basePath, virtualHost, targetEndpoint, configureSpikeArrestLimit) {
+  var environment = [];
+  environment.push(gitRevision());
+  environment.push(configureProxy("default", basePath, virtualHost));
+
+  return environment;
+};
 
 exports.xmlconfig = function(env, grunt) {
-  config = {
-    "test": [{
-      //sets description within API proxy for tracking purposes with this format 'git commit: 8974b5a by dzuluaga on Diegos-MacBook-Pro-2.local'
-      //see grunt/tasks/saveGitRevision.js for further customization
-      "options": {
-        "xpath": "//APIProxy/Description",
-        "value": "<%= grunt.option('gitRevision') %>"
-      },
-      "files": {
-        "target/apiproxy/<%= apigee_profiles[grunt.option('env')].apiproxy %>.xml": "apiproxy/*.xml"
-      }
-    }, {
-      "options": {
-        "xpath": "//TargetEndpoint/HTTPTargetConnection/URL",
-        "value": "http://ip.jsontest.com/"
-      },
-      "files": {
-        "target/apiproxy/targets/default.xml": "apiproxy/targets/default.xml"
-      }
-    }, {
-      "options": {
-        "xpath": "//ProxyEndpoint/HTTPProxyConnection/BasePath",
-        "value": "/v1/sample"
-      },
-      "files": {
-        "target/apiproxy/proxies/default.xml": "apiproxy/proxies/default.xml"
-      }
-    }],
-    "prod": [{ //sets description within API proxy for tracking purposes with this format 'git commit: 8974b5a by dzuluaga on Diegos-MacBook-Pro-2.local'
-      //see grunt/tasks/saveGitRevision.js for further customization
-      "options": {
-        "xpath": "//APIProxy/Description",
-        "value": "<%= grunt.option('gitRevision') %>"
-      },
-      "files": {
-        "target/apiproxy/<%= apigee_profiles[grunt.option('env')].apiproxy %>.xml": "apiproxy/*.xml"
-      }
-    }, {
-      "options": {
-        "xpath": "//TargetEndpoint/HTTPTargetConnection/URL",
-        "value": "http://ip.jsontest.com/"
-      },
-      "files": {
-        "target/apiproxy/targets/default.xml": "apiproxy/targets/default.xml"
-      }
-    }, {
-      "options": {
-        "xpath": "//ProxyEndpoint/HTTPProxyConnection/BasePath",
-        "value": "/v1/sample"
-      },
-      "files": {
-        "target/apiproxy/proxies/default.xml": "apiproxy/proxies/default.xml"
-      }
-    }]
+  var config = {
+    "dev": environment("/v1/ratesquery", "secure"),
+    "tlrgsandbox": environment("/v1/ratesquery", "https_vhost"),
+    "tlrgtest": environment("/v1/ratesquery", "https_vhost"),
+    "tlrgprod": environment("/v1/ratesquery", "https_vhost"),
+    "integration": environment("/v1/ratesquery", "secure")
+  };
+
+  if (!config[env]) {
+    grunt.fail.fatal('Environment ' + env + ' does not exist under grunt/apigee-config.js');
   }
-  if (!config[env]) grunt.fail.fatal('Environment ' + env + ' does not exist under grunt/apigee-config.js')
+
   return config[env];
-}
+};
