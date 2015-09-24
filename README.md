@@ -5,14 +5,14 @@ This project gives a base to build a simple Apigee proxy and can be used as a ba
 It has two end points:
 
 * `/status` - which call a node app residing under the `/node` directory
-* `/**` - which routes everything else to http://ip.jsontest.com/ (get your IP back)
+* `/**` - which routes everything else to `https://reqbot-api.herokuapp.com` (see [github](https://github.com/typingincolor/reqbot))
 
 It uses the [Apigee Grunt Plugin](https://github.com/apigeecs/apigee-deploy-grunt-plugin) to deploy the proxy. There is a lot more information in that repo.
 
 To deploy the sample proxy:
 
 ```
-grunt --env=test --username=_username_ /
+grunt --env=dev --username=_username_ /
       --password=_password_ /
       --org=_apigee_organisation_ /
       --curl=true 
@@ -42,7 +42,7 @@ X-Powered-By: Express
 OK
 ```
 
-### Get IP Address
+### Send Reequest to Reqbot
 
 Request:
 ```
@@ -52,18 +52,21 @@ http get https://{org}-test.apigee.net/v1/sample/blah
 Response:
 ```
 HTTP/1.1 200 OK
-Accept-Ranges: none
-Access-Control-Allow-Origin: *
-Alternate-Protocol: 80:quic,p=1,80:quic,p=1
-Cache-Control: private
 Connection: keep-alive
-Content-Type: application/json; charset=ISO-8859-1
-Date: Wed, 22 Apr 2015 07:03:40 GMT
-Server: Google Frontend
-Transfer-Encoding: chunked
-Vary: Accept-Encoding
+Content-Length: 2
+Content-Type: text/plain;charset=UTF-8
+Date: Thu, 24 Sep 2015 09:37:03 GMT
+Server: Cowboy
+Via: 1.1 vegur
+X-Reqbot-Path: /sample/blah
+X-Reqbot-Querystring:
 
-{
-    "ip": "107.23.47.166"
-}
+OK
 ```
+
+You can see the request the Reqbot received at `https://reqbot-web.herokuapp.com/buckets/sample`
+
+## Reqbot
+
+You can find further details on Reqbot at [here](https://github.com/typingincolor/reqbot) and [here](https://github.com/typingincolor/reqbot-web)
+

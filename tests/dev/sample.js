@@ -8,8 +8,6 @@ var grunt = require('grunt');
 var expect = require('chai').expect;
 var request = require('superagent');
 var tools = require('../tools');
-var fs = require('fs');
-var xml2jsParser = require('superagent-xml2jsparser');
 require('superagent-proxy')(request);
 
 var apigee_profile = {

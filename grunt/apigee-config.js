@@ -1,6 +1,6 @@
 var profile = function(environment, grunt) {
   var profile = {};
-  profile.apiproxy = 'ratesquery';
+  profile.apiproxy = 'sample';
   profile.org = grunt.option('org') || process.env.ae_org; // replace with organization
   profile.env = environment; // replace with environment
   profile.url_mgmt = 'https://api.enterprise.apigee.com'; // for cloud environments, leave as is
@@ -78,21 +78,22 @@ var gitRevision = function() {
   return conf;
 };
 
-var environment = function(basePath, virtualHost, targetEndpoint, configureSpikeArrestLimit) {
+var environment = function(basePath, virtualHost, targetEndpoint) {
   var environment = [];
   environment.push(gitRevision());
   environment.push(configureProxy("default", basePath, virtualHost));
+  environment.push(configureTargetEndpoint(targetEndpoint));
 
   return environment;
 };
 
 exports.xmlconfig = function(env, grunt) {
   var config = {
-    "dev": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapps.com/hotels"),
-    "tlrgsandbox": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
-    "tlrgtest": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
-    "tlrgprod": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapps.com/hotels"),
-    "integration": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapps.com/hotels")
+    "dev": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapp.com/hotels"),
+    "tlrgsandbox": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapp.com/hotels"),
+    "tlrgtest": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapp.com/hotels"),
+    "tlrgprod": environment("/v1/hotels", "https_vhost", "https://reqbot-api.herokuapp.com/hotels"),
+    "integration": environment("/v1/hotels", "secure", "https://reqbot-api.herokuapp.com/hotels")
   };
 
   if (!config[env]) {
